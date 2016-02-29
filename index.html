@@ -1,0 +1,177 @@
+<html>
+	<head>
+		<script src="stats.js"></script>
+	</head>
+	<body style="background-color:#eee;padding:0px;margin:0px">
+
+
+	<div style="width:1100px;position:relative;margin-left:auto;margin-right:auto;">
+
+		<div id="hint" style="position:relative;margin:20px 0px;border:solid 0px black;z-index:5;font-size:20pt;width:800px;text-align:left;font-family:helvetica;font-weight:200;color:#333">
+			Steph Curry is shooting 50% from 39ft on 1/2 shooting
+		</div>
+
+		<div style="background: linear-gradient(to right, rgb(20,20,40) , rgb(20,150,290));width:300px;height:20px;border-radius:5px;margin:20px 0px;color:white;font-family:helvetica;font-size:10px;line-height:20px">
+			<div style="float:left;padding-left:5px">0%</div>
+			<div style="float:right;padding-right:5px">100%</div>
+
+		</div>
+
+
+
+		<canvas id="c" style="width:1100px;height:500px;position:relative;margin-left:auto;margin-right:auto;display:block" onmousemove="showPerc(event)"></canvas>
+
+		<div style="font-family:helvetica;color:#555;font-size:11pt;margin:20px 0px">
+			<b>x axis:</b> feet from the basket &nbsp;
+			<b>y axis:</b> # shots taken
+		</div>
+
+	</div>
+
+		<script>
+
+		var sortedShots = []
+
+		for (var i=0;i<100;i++) {
+			sortedShots[i] = {made: 0, took:0}
+		}
+
+
+		var shots = stats.resultSets[0].rowSet
+		for (var i=0;i<shots.length;i++) {
+			var ft = shots[i][16]
+			var made = shots[i][20]
+			var took = shots[i][19]
+			sortedShots[ft].made += made
+			sortedShots[ft].took += took
+		}
+
+		var percentages = []
+
+		for (var i=0;i<sortedShots.length;i++) {
+			percentages[i] = sortedShots[i].made / sortedShots[i].took
+		}
+		
+
+		var canvas = document.getElementById("c")
+		var context = canvas.getContext("2d")
+
+		canvas.width = 1100
+		canvas.height = 500
+		
+		function draw(col) {
+			context.clearRect(0,0,1300,1000)
+
+			var w = 15
+
+
+			for (var i=percentages.length;i>=0;i--) {
+				with(context) {
+					if (percentages[i]>=0) {
+						//fillStyle = "rgb(0,"+Math.floor(percentages[i]*255)+",0)"
+						var color = "rgb("+Math.floor(percentages[i]*0+20)+","+Math.floor(percentages[i]*130+20)+","+Math.floor(percentages[i]*250+40)+")"
+					} else {
+						var color = "#aaa"
+					}
+
+						var shotnum = sortedShots[i] ? sortedShots[i].took : 0
+						var h = Math.pow(shotnum,1)*2.5
+						var x = i*w
+						var y = 500 - h
+
+
+						if (x || x===0) {
+							var grd = createLinearGradient(x,0,x,500)
+							grd.addColorStop(0,color)
+							grd.addColorStop(1,"white")
+							fillStyle = grd
+							fillRect(x,0,w,500)
+						
+
+
+							beginPath()
+								rect(x,y,w,h)
+								fillStyle = color
+								fill()
+							closePath()
+						}
+					
+				}
+
+			}
+
+		/*	if (col || col == 0) {
+				with (context) {
+					fillStyle = "#e4e4e4"
+					fillRect(col * w, 0, w, 500)
+				}
+			}
+*/
+
+			with (context) {
+				beginPath()
+					moveTo(23.5*w,0)
+					lineTo(23.5*w,500)
+					lineWidth = 1
+					strokeStyle = "#fff"
+					stroke()
+				closePath()
+				fillStyle = "#fff"
+				font = "15px helvetica"
+				fillText("3 point line",23.5*w+5,15)
+
+				beginPath()
+					moveTo(47*w,0)
+					lineTo(47*w,500)
+					lineWidth = 1
+					strokeStyle = "#fff"
+					stroke()
+				closePath()
+
+				fillText("Center court",47*w+5,15)
+			}
+		}
+
+
+		function showPerc(e) {
+			console.log(e)
+			var x = e.layoutX || e.offsetX;
+			var y = e.layoutY || e.offsetY;
+
+			x = Math.floor(x/15)
+
+			console.log(percentages[x])
+			console.log(sortedShots[x].took)
+
+			if (percentages[x]>=0) {
+				var perc = Math.floor(percentages[x]*1000)/10 + "%"
+			} else {
+				var perc = "nothing"
+			}
+
+			var htmlstr = "Steph Curry is shooting "
+									+  perc
+									+ " from "
+									+ x + "ft"
+									+ " on "
+									+ sortedShots[x].made + "/"
+									+ sortedShots[x].took
+									+ " shooting"
+
+			var hint = document.getElementById("hint")
+
+			if (percentages[x]>=0) {
+				hint.innerHTML = htmlstr
+			}
+
+			draw(x)
+		}
+
+		draw(-1)
+
+
+		</script>
+
+
+	</body>
+</html>
